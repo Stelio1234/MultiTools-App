@@ -23,8 +23,8 @@
     * { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
     body {
-      background-color: linear-gradient(180deg, #000000, #111, #0a0a0a);
-      color: #0a0a0a;
+      background-color: #121212;
+      color: #ffffff;
       font-family: Arial, Helvetica, sans-serif;
       margin: 0;
       padding: 1rem;
@@ -124,26 +124,6 @@
       filter: drop-shadow(0 0 8px rgba(84, 212, 44, 0.25));
     }
 
-    .back-button {
-      position: fixed;
-      right: 18px;
-      bottom: 18px;
-      padding: 0.7rem 1rem;
-      border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      background: rgba(255, 255, 255, 0.08);
-      color: white;
-      font-weight: 700;
-      cursor: pointer;
-      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-      backdrop-filter: blur(10px);
-    }
-
-    .back-button:hover {
-      transform: translateY(-2px);
-      border-color: rgba(84, 212, 44, 0.55);
-      box-shadow: 0 0 10px rgba(84, 212, 44, 0.25);
-    }
 
     .back-button.primary {
       background: var(--green);
@@ -280,6 +260,6 @@
     </section>
   </main>
 
-  <button class="back-button primary" onclick="window.history.back()">Back</button>
+  
 </body>
 </html>

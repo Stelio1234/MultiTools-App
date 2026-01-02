@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>YouTube Downloader</title>
+<link rel="icon" type="image/x-icon" href="/images/MultiTools.jpg" />
+<meta name="theme-color" content="#45a049" />
+<link rel="manifest" href="/manifest.json" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
+<style>
+:root {
+  --primary: #45a049;
+  --secondary: #24272b;
+  --accent: #222325;
+  --glass: rgba(36, 39, 43, 0.7);
+  --hover: #38a049;
+  --text-light: #fff;
+  --radius: 13px;
+  --soft-shadow: 0 5px 21px rgba(0,0,0,0.14);
+}
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: linear-gradient(135deg, #202622 0%, #272e21 100%);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.main-container {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius);
+  box-shadow: var(--soft-shadow);
+  width: 63%;
+  max-width: 933px;
+  background: var(--accent);
+  backdrop-filter: blur(5px);
+  overflow: hidden;
+}
+.header {
+  background: var(--primary);
+  padding: 19px 0 16px 0;
+  text-align: center;
+  font-size: 1.5rem;
+  color: var(--text-light);
+  font-weight: bold;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 11px;
+  letter-spacing: 0.5px;
+  border-bottom-left-radius: var(--radius);
+  border-bottom-right-radius: var(--radius);
+}
+.container {
+  display: flex;
+  padding: 19px;
+  gap: 18px;
+  justify-content: space-between;
+}
+.controls {
+  flex: 1 1 300px;
+  background: var(--glass);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: grid;
+  gap: 13px;
+  box-shadow: var(--soft-shadow);
+}
+.controls label {
+  color: var(--text-light);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+.controls input, .controls select, .controls button {
+  padding: 8px;
+  border-radius: 7px;
+  border: none;
+  background: rgba(255,255,255,0.13);
+  color: var(--text-light);
+  font-size: 0.9rem;
+  transition: background 0.2s;
+}
+.controls input:focus, .controls select:focus {
+  background: rgba(0,0,0,0.18);
+  outline: 2px solid var(--primary);
+}
+.controls button {
+  background: var(--primary);
+  color: var(--text-light);
+  font-weight: bold;
+  cursor: pointer;
+}
+.controls button:hover {
+  background: var(--hover);
+}
+.preview {
+  flex: 2 1 333px;
+  background: var(--glass);
+  padding: 24px;
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(255, 255, 255, 0.2);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  display: none;
+  margin: 10px auto;
+}
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.progress-bar { width: 100%; background: #2c2c2c; height: 8px; border-radius: 4px; overflow: hidden; }
+.progress-fill { height: 100%; background: #4caf50; width: 0%; transition: width 0.3s ease; }
+.progress-text { color: white; text-align: center; margin-top: 8px; }
+.error-message { color: #ff4c4c; margin-top: 8px; }
+.success-message { color: #4caf50; margin-top: 8px; }
+.download-link button {
+  color: #4caf50; text-decoration: none; font-weight: bold;
+  padding: 8px 16px; border: 2px solid #4caf50;
+  border-radius: 8px; cursor: pointer; background: none;
+}
+.download-link button:hover {
+  background-color: #4caf50; color: #fff;
+}
+</style>
+</head>
+<body>
+<div class="main-container">
+  <div class="header"><i class="fas fa-download"></i>YouTube Downloader</div>
+  <div class="container">
+    <div class="controls">
+      <div>
+        <label for="urlInput">YouTube URL</label>
+        <input id="urlInput" type="text" placeholder="Enter YouTube link..." />
+      </div>
+      <div>
+        <label for="qualitySelect">Quality</label>
+        <select id="qualitySelect">
+          <option value="highest">Highest Quality</option>
+          <option value="1080p">1080p</option>
+          <option value="720p">720p</option>
+          <option value="480p">480p</option>
+        </select>
+      </div>
+      <div>
+        <button id="run-btn">Download</button>
+      </div>
+    </div>
+    <div class="preview">
+      <div id="output"></div>
+      <div id="loadingSpinner" class="loading-spinner"></div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-text" id="progressText">0%</div>
+      <div id="errorMessage" class="error-message"></div>
+      <div id="successMessage" class="success-message"></div>
+      <div class="download-link" id="downloadLink" style="display:none;">
+        <button onclick="downloadFile()">Download Video File</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentDownloadId = null;
+
+document.getElementById('run-btn').addEventListener('click', async () => {
+    const url = document.getElementById('urlInput').value.trim();
+    const quality = document.getElementById('qualitySelect').value;
+
+    if (!url) {
+        document.getElementById('errorMessage').textContent = "Please enter a URL.";
+        return;
+    }
+
+    document.getElementById('errorMessage').textContent = "";
+    document.getElementById('successMessage').textContent = "";
+    document.getElementById('loadingSpinner').style.display = "block";
+    document.getElementById('progressFill').style.width = "0%";
+    document.getElementById('progressText').textContent = "0%";
+
+    try {
+        const response = await fetch("http://127.0.0.1:5000/download", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ url, quality })
+        });
+        const data = await response.json();
+
+        if (data.success) {
+            currentDownloadId = data.download_id;
+            document.getElementById('successMessage').textContent = "Download started!";
+            checkProgress();
+        } else {
+            throw new Error(data.error || "Download failed");
+        }
+    } catch (error) {
+        document.getElementById('errorMessage').textContent = error.message;
+    } finally {
+        document.getElementById('loadingSpinner').style.display = "none";
+    }
+});
+
+async function checkProgress() {
+    if (!currentDownloadId) return;
+    try {
+        const resp = await fetch(`http://127.0.0.1:5000/status/${currentDownloadId}`);
+        const data = await resp.json();
+        document.getElementById('progressFill').style.width = `${data.progress}%`;
+        document.getElementById('progressText').textContent = `${data.progress}% - ${data.status}`;
+
+        if (data.status === "completed") {
+            document.getElementById('successMessage').textContent = "Download complete!";
+            document.getElementById('downloadLink').style.display = "block";
+        } else if (data.status === "failed") {
+            document.getElementById('errorMessage').textContent = data.error || "Download failed.";
+        } else {
+            setTimeout(checkProgress, 1000);
+        }
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+function downloadFile() {
+    if (!currentDownloadId) return;
+    const link = document.createElement("a");
+    link.href = `http://127.0.0.1:5000/download/${currentDownloadId}/file`;
+    link.download = "video.mp4";
+    link.click();
+}
+</script>
+</body>
+</html>

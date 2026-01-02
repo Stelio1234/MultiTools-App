@@ -478,81 +478,17 @@
     <div class="header-inner">
       <div>
         <h1>MultiTools</h1>
-        <p>The Site with Many Tools</p>
+        <p>The App with Many Tools</p>
       </div>
 
       <div class="action-bar">
         <span id="welcome" class="welcome-text"></span>
         <button id="login-btn" class="login-btn">Log In</button>
-        <button class="download-btn" onclick="window.location.href='Templates/Other/download'">Download</button>
       </div>
     </div>
   </header>
 
   <main>
-    <section class="hero" id="top">
-      <div class="hero-inner">
-        <div>
-          <h2>All the tools you need—fast, free, and in one place.</h2>
-          <p class="subhead">
-            MultiTools is your hub for quick utilities: timers, converters, generators, developer tools, and more.
-            No installs. Just click and go.
-          </p>
-
-          <div class="cta-row">
-            <a class="btn btn-primary" href="#tools">Browse tools</a>
-            <a class="btn" href="https://discord.gg/ESWhAhR5Pp" target="_blank" rel="noopener">Join Discord</a>
-            <a class="btn" href="https://github.com/Stelio1234/MultiTools" target="_blank" rel="noopener">View on GitHub</a>
-          </div>
-
-          <p class="muted" style="margin-top: 0.9rem; font-size: 0.95rem;">
-            Tip: Search tools instantly below.
-          </p>
-        </div>
-
-        <div class="panel">
-          <h3>Popular tools</h3>
-          <div id="popular-tools" class="tool-grid"></div>
-        </div>
-      </div>
-    </section>
-
-    <section id="stats">
-      <h2>At a glance</h2>
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-number" id="stat-tools">0</div>
-          <div class="muted">Tools available</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number" id="stat-categories">0</div>
-          <div class="muted">Categories</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number">Free</div>
-          <div class="muted">No paywalls</div>
-        </div>
-      </div>
-    </section>
-
-    <section id="features">
-      <h2>Why MultiTools?</h2>
-      <div class="features-grid">
-        <div class="feature-card">
-          <h3>Fast</h3>
-          <p>Lightweight pages that load quickly and get out of your way.</p>
-        </div>
-        <div class="feature-card">
-          <h3>All-in-one</h3>
-          <p>Utilities for everyday tasks, creators, and developers—together.</p>
-        </div>
-        <div class="feature-card">
-          <h3>Always improving</h3>
-          <p>New tools and updates ship regularly—check Patch Notes anytime.</p>
-        </div>
-      </div>
-    </section>
-
     <section id="tools">
       <h2>Browse tools</h2>
       <p class="muted">Search by name/description or filter by category.</p>
@@ -679,15 +615,6 @@
           { name: "UUID Generator", link: "Templates/Generators/uuid-generator.html", desc: "Generate UUIDs" },
         ],
       },
-      {
-        title: "Site Info",
-        tools: [
-          { name: "Terms of Service", link: "Templates/Other/TOS.html" },
-          { name: "Privacy Policy", link: "Templates/Other/privicypolicy.html" },
-          { name: "Patch Notes", link: "Templates/Other/patchnotes.html" },
-          { name: "Settings", link: "Templates/Other/settings.html" }, 
-        ],
-      },
     ];
 
     const ALL_CATEGORIES = "All Categories";
@@ -768,11 +695,7 @@
       return a;
     }
 
-    function renderStats() {
-      const tools = flattenTools(categories);
-      document.getElementById("stat-tools").textContent = String(tools.length);
-      document.getElementById("stat-categories").textContent = String(categories.length);
-    }
+
 
     function categoryCounts() {
       const counts = new Map();
@@ -962,7 +885,6 @@
     }
 
     window.addEventListener("load", () => {
-      renderStats();
       renderCategoryFilter();
       wireControls();
       renderPopular().catch(() => {});

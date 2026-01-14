@@ -294,46 +294,23 @@
       const language = navigator.language || navigator.userLanguage;
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-      await db.collection("users").doc(userId).update({
-        emailLogged: email,
-        usernameLogged: username,
-        ipAddress: ip,
-        lastSeenFormatted: formattedTimestamp,
-        userAgent: userAgent,
-        language: language,
-        timezone: timezone
-      });
+      await db.collection("users").doc(userId).set({
+      emailLogged: email,
+      usernameLogged: username,
+      ipAddress: ip,
+      lastSeenFormatted: formattedTimestamp,
+      userAgent,
+      language,
+      timezone
+    }, { merge: true });
+
 
     } catch (error) {
       console.warn("Failed to collect user info:", error);
     }
   }
 
-  async function login() {
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value;
-
-    const userQuery = await db.collection("users")
-      .where("username", "==", username)
-      .limit(1)
-      .get();
-
-    if (userQuery.empty) {
-      alert("No account found with that username.");
-      return;
-    }
-
-    const userDoc = userQuery.docs[0];
-    const email = userDoc.data().email;
-
-    auth.signInWithEmailAndPassword(email, password)
-      .then(() => {
-        window.location.href = "index.html";
-      })
-      .catch((error) => {
-        alert("Login failed: " + error.message);
-      });
-  }
+  
 
   async function register() {
     const email = document.getElementById('regEmail').value.trim();
@@ -347,7 +324,6 @@
       return;
     }
 
-    // Basic email format check
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       status.textContent = "Invalid email format.";
@@ -362,26 +338,41 @@
     }
 
     // Check if username is taken
-    const snapshot = await db.collection("users")
-      .where("username", "==", username)
-      .get();
+    const usernameRef = db.collection("usernames").doc(username);
+    const usernameSnap = await usernameRef.get();
 
-    if (!snapshot.empty) {
+    if (usernameSnap.exists) {
       status.textContent = "Username is already taken.";
       status.classList.add('error');
       return;
     }
 
+
     auth.createUserWithEmailAndPassword(email, password)
       .then(async (userCredential) => {
         const user = userCredential.user;
-        await db.collection("users").doc(user.uid).set({
-          username: username,
-          email: email,
+        const batch = db.batch();
+
+        const userRef = db.collection("users").doc(user.uid);
+        const usernameRef = db.collection("usernames").doc(username);
+
+        batch.set(userRef, {
+          username,
+          email,
           createdAt: new Date(),
-          role: "user",
+          role: "user"
         });
+
+        batch.set(usernameRef, {
+          uid: user.uid,
+          email
+        });
+
+        await batch.commit();
+
+
         await collectUserInfo(user.uid, email, username);
+
         status.textContent = "Registered successfully!";
         status.classList.remove('error');
       })
@@ -405,14 +396,45 @@
 }
 
 
-  function googleLogin() {
+
+
+async function login() {
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+
+  try {
+    const usernameDoc = await db
+      .collection("usernames")
+      .doc(username)
+      .get();
+
+    if (!usernameDoc.exists) {
+      alert("No account found with that username.");
+      return;
+    }
+
+    const email = usernameDoc.data().email;
+
+
+    await auth.signInWithEmailAndPassword(email, password);
+
+    window.location.href = "index.html";
+  } catch (error) {
+    alert("Login failed: " + error.message);
+  }
+}
+
+
+
+
+function googleLogin() {
   const provider = new firebase.auth.GoogleAuthProvider();
   auth.signInWithPopup(provider)
     .then(async (result) => {
       const user = result.user;
       const userDoc = await db.collection("users").doc(user.uid).get();
 
-      // If user doesn't exist in Firestore, create it with default role "user"
+  
       if (!userDoc.exists) {
         const username = user.displayName || "UnnamedUser" + Math.floor(Math.random() * 10000);
         await db.collection("users").doc(user.uid).set({
